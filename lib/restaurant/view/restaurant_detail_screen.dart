@@ -11,10 +11,12 @@ import 'package:actual/restaurant/model/restaurant_detail_model.dart';
 import 'package:actual/restaurant/model/restaurant_model.dart';
 import 'package:actual/restaurant/provider/restaurant_provider.dart';
 import 'package:actual/restaurant/provider/restaurant_rating_provider.dart';
+import 'package:actual/restaurant/view/basket_screen.dart';
 import 'package:actual/user/provider/basket_provider.dart';
 import 'package:badges/badges.dart';
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class RestaurantDetailScreen extends ConsumerStatefulWidget {
@@ -60,8 +62,6 @@ class _RestaurantDetailScreenState
     final ratingState = ref.watch(restaurantRatingProvider(widget.id));
     final basket = ref.watch(basketProvider);
 
-    print(basket);
-
     if (state == null) {
       return DefaultLayout(
         child: Center(
@@ -72,8 +72,11 @@ class _RestaurantDetailScreenState
     return DefaultLayout(
       title: '불타는 떡볶이',
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          context.pushNamed(BasketScreen.routeName);
+        },
         backgroundColor: PRIMARY_COLOR,
+        foregroundColor: Colors.white,
         child: Badge(
           showBadge: basket.isNotEmpty,
           badgeContent: Text(
@@ -211,7 +214,7 @@ class _RestaurantDetailScreenState
               },
               child: Padding(
                 padding: const EdgeInsets.only(top: 16),
-                child: ProductCard.fromRestaurnatProductModel(model: model),
+                child: ProductCard.fromRestaurantProductModel(model: model),
               ),
             );
           },
