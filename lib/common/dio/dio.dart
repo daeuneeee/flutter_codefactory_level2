@@ -1,5 +1,6 @@
 import 'package:actual/common/const/data.dart';
 import 'package:actual/common/secure_storage/secure_storage.dart';
+import 'package:actual/user/provider/auth_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -10,7 +11,10 @@ final dioProvider = Provider<Dio>((ref) {
   final storage = ref.watch(secureStorageProvider);
 
   dio.interceptors.add(
-    CustomInterceptor(storage: storage),
+    CustomInterceptor(
+      storage: storage,
+      ref: ref,
+    ),
   );
 
   return dio;
@@ -18,9 +22,11 @@ final dioProvider = Provider<Dio>((ref) {
 
 class CustomInterceptor extends Interceptor {
   final FlutterSecureStorage storage;
+  final Ref ref;
 
   CustomInterceptor({
     required this.storage,
+    required this.ref,
   });
 
   // 1) 요청 보낼 때
@@ -67,7 +73,7 @@ class CustomInterceptor extends Interceptor {
     //   '[RES][${response.requestOptions.method} ${response.requestOptions.uri}]',
     // );
 
-    super.onResponse(response, handler);
+    return super.onResponse(response, handler);
   }
 
   // 3) 에러가 났을 때
@@ -78,15 +84,14 @@ class CustomInterceptor extends Interceptor {
   ) async {
     // 401 에러가 발생했을 때 (status code)
     // 토큰을 재발급 받는 시도를 하고 토큰이 재발급되면 새로운 토큰으로 다시 요청한다.
-    // print(
-    //   '[ERR][${err.requestOptions.method} ${err.requestOptions.uri}]',
-    // );
+    print(
+      '[ERR][${err.requestOptions.method} ${err.requestOptions.uri}]',
+    );
 
     final refreshToken = await storage.read(key: REFRESH_TOKEN_KEY);
 
     // refreshToken이 아예 없으면 에러를 던진다.
     if (refreshToken == null) {
-      // 에러를 던질 때에는 handler.reject를 사용한다.
       return handler.reject(err);
     }
 
@@ -122,7 +127,12 @@ class CustomInterceptor extends Interceptor {
         // 응답값을 넣어주면 실제로 요청을 실행한 화면에서는 에러가 나지 않은 것처럼 인식 가능
         return handler.resolve(response);
       } on DioError catch (e) {
-        // 에러 반환
+        // 아래 에러: circular dependency error
+        // dio와 userMeProvider가 서로를 필요로 하기때문에 무한 로딩이 생김
+        // ref.read(userMeProvider.notifier).logout();
+
+        ref.read(authProvider.notifier).logout();
+
         return handler.reject(e);
       }
     }

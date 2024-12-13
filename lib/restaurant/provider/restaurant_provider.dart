@@ -17,13 +17,15 @@ final restaurantDetailProvider =
 });
 
 final restaurantProvider =
-    StateNotifierProvider<RestaurantStateNotifier, CursorPaginationBase>((ref) {
-  final repository = ref.watch(restaurantRepositoryProvider);
+    StateNotifierProvider<RestaurantStateNotifier, CursorPaginationBase>(
+  (ref) {
+    final repository = ref.watch(restaurantRepositoryProvider);
 
-  final notifier = RestaurantStateNotifier(repository: repository);
+    final notifier = RestaurantStateNotifier(repository: repository);
 
-  return notifier;
-});
+    return notifier;
+  },
+);
 
 class RestaurantStateNotifier
     extends PaginationProvider<RestaurantModel, RestaurantRepository> {
