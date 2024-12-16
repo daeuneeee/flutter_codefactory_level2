@@ -37,9 +37,9 @@ class CustomInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    // print(
-    //   '[REQ][${options.method} ${options.uri}]',
-    // );
+    print(
+      '[REQ][${options.method} ${options.uri}]',
+    );
     if (options.headers['accessToken'] == 'true') {
       // 헤더 삭제
       options.headers.remove('accessToken');
